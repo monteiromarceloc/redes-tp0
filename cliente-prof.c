@@ -4,7 +4,5 @@
 
 int main() {
   printf("Hello, world!\n");
-  // Gera senha prof e alunos
-
   return 0;
 }
