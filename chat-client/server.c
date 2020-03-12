@@ -38,8 +38,7 @@ int main(void)
 
 	while(1) {
 		struct sockaddr_in raddr;
-		struct sockaddr *raddrptr =
-			(struct sockaddr *)&raddr;
+		struct sockaddr *raddrptr = (struct sockaddr *)&raddr;
 		socklen_t rlen = sizeof(struct sockaddr_in);
 
 		int r = accept(s, raddrptr, &rlen);

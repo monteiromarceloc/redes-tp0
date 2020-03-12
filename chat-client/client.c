@@ -39,7 +39,7 @@ int main(void)
 	printf("mensagem> ");
 	fgets(linha, 511, stdin);
 	ssize_t count;
-	count = send(s, linha, strlen(linha)+1, 0);
+	count = send(s, linha, strlen(linha)+1, 0); // incluir o char \0
 	if(count != strlen(linha)+1)
 		logexit("send");
 
@@ -47,7 +47,7 @@ int main(void)
 	memset(buf, 0, 512);
 	unsigned total = 0;
 	while(1) {
-		count = recv(s, buf+total, 512, 0);
+		count = recv(s, buf+total, 512-total, 0);
 		if(count == 0) break;
 		total += count;
 	}
