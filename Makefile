@@ -1,7 +1,7 @@
 all:
-	gcc -Wall servidor.c -o servidor
-	gcc -Wall cliente-aluno.c -o cliente-aluno
-	gcc -Wall cliente-prof.c -o cliente-prof
+	gcc -Wall ./src/servidor.c -o servidor
+	gcc -Wall ./src/cliente-aluno.c -o cliente-aluno
+	gcc -Wall ./src/cliente-prof.c -o cliente-prof
 	./servidor
 
 clean:
