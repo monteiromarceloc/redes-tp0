@@ -25,6 +25,14 @@ void sendMsg(const int r, char * msg){
 	printf("enviou\n");
 }
 
+void recvMsg(const int r, char* buf){
+		printf("Aguardando msg...\n");
+		memset(buf, 0, 10);
+		size_t total = recv(r, buf, 10, 0);
+		printf("received %d bytes\n", (int)total);
+		puts(buf);
+}
+
 struct dados {
 	int sock;
 	struct sockaddr_in addr;
@@ -38,35 +46,20 @@ void * client_thread(void *param) {
 	int r = dd->sock;
 
 	char ipcliente[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(dd->addr.sin_addr),
-			ipcliente, 512);
+	inet_ntop(AF_INET, &(dd->addr.sin_addr), ipcliente, 512);
 	
 	printf("thread %x para conexao de %s %d\n", (unsigned int)tid, ipcliente, (int)ntohs(dd->addr.sin_port));
 
 	sendMsg(r, "READY");
 
-	// Receber READY
 	char buf[10];
-	memset(buf, 0, 10);
-	unsigned total = 0;
-	ssize_t count;
-	while(1) {
-		count = recv(r, buf+total, 10-total, 0);
-		if(count == 0) break;
-		total += count;
-	}
-	printf("received %d bytes\n", (int)total);
+	size_t c = recv(r, buf, 10, 0);
+	printf("recebemos %d bytes\n", (int)c);
 	puts(buf);
-
-	// char buf[10];
-	// size_t c = recv(r, buf, 10, 0);
-	// printf("recebemos %d bytes\n", (int)c);
-	// puts(buf);
 
 	// sprintf(buf, "seu IP eh %s %d\n", ipcliente,
 	// 		(int)ntohs(dd->addr.sin_port));
 	// printf("enviando %s\n", buf);
-
 	// send(r, buf, strlen(buf)+1, 0);
 	// printf("enviou\n");
 
@@ -105,12 +98,13 @@ int main(int argc, char **argv)
 
 	while(1) {
 		struct sockaddr_in raddr;
-		struct sockaddr *raddrptr =
-			(struct sockaddr *)&raddr;
+		struct sockaddr *raddrptr = (struct sockaddr *)&raddr;
 		socklen_t rlen = sizeof(struct sockaddr_in);
 
 		int r = accept(s, raddrptr, &rlen);
 		if(r == -1) logexit("accept");
+
+		// Cria thread pra lidar com cliente
 
 		struct dados *dd = malloc(sizeof(*dd));
 		if(!dd) logexit("malloc");
@@ -118,11 +112,8 @@ int main(int argc, char **argv)
 		dd->addr = raddr;
 		pthread_t tid;
 		pthread_create(&tid, NULL, client_thread, dd);
+
 	}
+
 	exit(EXIT_SUCCESS);
 }
-
-
-
-
-

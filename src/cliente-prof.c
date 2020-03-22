@@ -12,6 +12,16 @@ void logexit(const char *str){
 	exit(EXIT_FAILURE);
 }
 
+void sendMsg(const int r, char * msg){
+	printf("enviando %s...\n", msg);
+	int size = strlen(msg);
+	char buf[size];
+	for (int i = 0; i < size; i++){
+		buf[i] = msg[i];
+	}
+	send(r, buf, size, 0);
+	printf("enviou\n");
+}
 
 int main(int argc, char **argv)
 {
@@ -38,25 +48,24 @@ int main(int argc, char **argv)
 	if(connect(s, addrptr, sizeof(struct sockaddr_in)))
 		logexit("connect");
 
-	// Receber READY
-	char buf[512];
-	memset(buf, 0, 512);
-	unsigned total = 0;
-	ssize_t count;
-	while(1) {
-		count = recv(s, buf+total, 512-total, 0);
-		if(count == 0) break;
-		total += count;
-	}
-	printf("received %d bytes\n", (int)total);
-	puts(buf);
+	while(1){
+		// Receber READY
+		char buf[512];
+		memset(buf, 0, 512);
+		size_t total = recv(s, buf, 10, 0);
+		printf("received %d bytes\n", (int)total);
+		puts(buf);
 
-	char linha[512];
-	printf("mensagem> ");
-	fgets(linha, 511, stdin);
-	count = send(s, linha, strlen(linha)+1, 0); // incluir o char \0
-	if(count != strlen(linha)+1)
-		logexit("send");
+		// Enviar SENHA
+		// ssize_t count;
+		char linha[512];
+		printf("senha> ");
+		fgets(linha, 511, stdin);
+		sendMsg(s, linha);
+		// count = send(s, linha, strlen(linha)+1, 0); // incluir o char \0
+		// if(count != strlen(linha)+1) logexit("send");
+	}
+
 
 	// char buf[512];
 	// memset(buf, 0, 512);
