@@ -81,7 +81,7 @@ void * client_thread(void *param) {
 		recvMsg(r, buf);
 	}
 	else {
-		int isAluno = strcmp(buf, senha_prof);
+		int isAluno = strcmp(buf, senha_aluno);
 		printf("isAluno: %d\n", isAluno);
 		if (isAluno == 0){
 			// ALUNO

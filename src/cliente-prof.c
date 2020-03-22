@@ -66,8 +66,10 @@ int main(int argc, char **argv)
 	printf("senha> ");
 	scanf ("%[^\n]%*c", senha);
 	sendMsg(s, senha, 8);
+
+	// Recebe LISTA
 	recvMsg(s, buf);
 	sendMsg(s, "OK", 2);
-	
+
 	exit(EXIT_SUCCESS);
 }
