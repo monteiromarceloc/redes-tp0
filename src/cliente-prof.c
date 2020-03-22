@@ -6,8 +6,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#define BUFSZ 1024
-
 void logexit(const char *str){
 	printf("Error: %s", str);
 	perror(str);

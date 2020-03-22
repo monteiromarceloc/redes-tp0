@@ -44,7 +44,22 @@ void * client_thread(void *param) {
 	printf("thread %x para conexao de %s %d\n", (unsigned int)tid, ipcliente, (int)ntohs(dd->addr.sin_port));
 
 	sendMsg(r, "READY");
-	// size_t c = recv(r, buf, 512, 0);
+
+	// Receber READY
+	char buf[10];
+	memset(buf, 0, 10);
+	unsigned total = 0;
+	ssize_t count;
+	while(1) {
+		count = recv(r, buf+total, 10-total, 0);
+		if(count == 0) break;
+		total += count;
+	}
+	printf("received %d bytes\n", (int)total);
+	puts(buf);
+
+	// char buf[10];
+	// size_t c = recv(r, buf, 10, 0);
 	// printf("recebemos %d bytes\n", (int)c);
 	// puts(buf);
 
@@ -104,7 +119,6 @@ int main(int argc, char **argv)
 		pthread_t tid;
 		pthread_create(&tid, NULL, client_thread, dd);
 	}
-
 	exit(EXIT_SUCCESS);
 }
 
