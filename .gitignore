@@ -1,3 +1,11 @@
 cliente-aluno
 cliente-prof
 servidor
+
+./src/cliente-aluno
+./src/cliente-prof
+./src/servidor
+
+./chat-client/client
+./chat-client/server
+./chat-client/server-mt

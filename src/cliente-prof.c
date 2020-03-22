@@ -8,25 +8,30 @@
 
 #define BUFSZ 1024
 
-void logexit(const char *str)
-{
+void logexit(const char *str){
+	printf("Error: %s", str);
 	perror(str);
 	exit(EXIT_FAILURE);
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
-	int s;
+	// Identificando argumentos
+	if(argc<=2) logexit("Falta inserir IP e porto como argumentos argv");
+	char *IP = argv[1];
+	int port = atoi(argv[2]);
+	printf("IP: %s\nPorto: %d\n\n", IP, port);
 
+	// Inicializando conexão
+	int s;
 	struct in_addr inaddr;
-	inet_pton(AF_INET, "127.0.0.1",
-			&inaddr);
+	inet_pton(AF_INET, IP, &inaddr);
 
 	struct sockaddr_in addr;
 	struct sockaddr *addrptr = (struct sockaddr *)&addr;
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(5152);
+	addr.sin_port = htons(port);
 	addr.sin_addr = inaddr;
 
 	s = socket(AF_INET, SOCK_STREAM, 0);
@@ -35,25 +40,37 @@ int main(void)
 	if(connect(s, addrptr, sizeof(struct sockaddr_in)))
 		logexit("connect");
 
-	char linha[512];
-	printf("mensagem> ");
-	fgets(linha, 511, stdin);
-	ssize_t count;
-	count = send(s, linha, strlen(linha)+1, 0); // incluir o char \0
-	if(count != strlen(linha)+1)
-		logexit("send");
-
+	// Receber READY
 	char buf[512];
 	memset(buf, 0, 512);
 	unsigned total = 0;
+	ssize_t count;
 	while(1) {
 		count = recv(s, buf+total, 512-total, 0);
 		if(count == 0) break;
 		total += count;
 	}
-
 	printf("received %d bytes\n", (int)total);
 	puts(buf);
+
+	char linha[512];
+	printf("mensagem> ");
+	fgets(linha, 511, stdin);
+	count = send(s, linha, strlen(linha)+1, 0); // incluir o char \0
+	if(count != strlen(linha)+1)
+		logexit("send");
+
+	// char buf[512];
+	// memset(buf, 0, 512);
+	// unsigned total = 0;
+	// while(1) {
+	// 	count = recv(s, buf+total, 512-total, 0);
+	// 	if(count == 0) break;
+	// 	total += count;
+	// }
+
+	// printf("received %d bytes\n", (int)total);
+	// puts(buf);
 
 	exit(EXIT_SUCCESS);
 }
