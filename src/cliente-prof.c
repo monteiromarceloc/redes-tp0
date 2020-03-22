@@ -12,15 +12,25 @@ void logexit(const char *str){
 	exit(EXIT_FAILURE);
 }
 
-void sendMsg(const int r, char * msg){
-	printf("enviando %s...\n", msg);
-	int size = strlen(msg);
+void sendMsg(const int r, char * msg, int size){
+	printf("Enviando %s...\n", msg);
 	char buf[size];
 	for (int i = 0; i < size; i++){
 		buf[i] = msg[i];
 	}
-	send(r, buf, size, 0);
-	printf("enviou\n");
+	ssize_t count;
+	count = send(r, buf, size, 0);
+	printf("Enviou %d bytes\n", (int)count);
+	if(count != size) logexit("send");
+}
+
+void recvMsg(const int r, char* buf){
+	printf("Aguardando msg...\n");
+	memset(buf, 0, 10);
+	size_t total = recv(r, buf, 10, 0);
+	printf("Recebeu %d bytes\n", (int)total);
+	printf("Tamanho recebido: %d\n", (int)strlen(buf));
+	printf("%s\n", buf);
 }
 
 int main(int argc, char **argv)
@@ -29,7 +39,6 @@ int main(int argc, char **argv)
 	if(argc<=2) logexit("Falta inserir IP e porto como argumentos argv");
 	char *IP = argv[1];
 	int port = atoi(argv[2]);
-	printf("IP: %s\nPorto: %d\n\n", IP, port);
 
 	// Inicializando conexão
 	int s;
@@ -48,37 +57,17 @@ int main(int argc, char **argv)
 	if(connect(s, addrptr, sizeof(struct sockaddr_in)))
 		logexit("connect");
 
-	while(1){
-		// Receber READY
-		char buf[512];
-		memset(buf, 0, 512);
-		size_t total = recv(s, buf, 10, 0);
-		printf("received %d bytes\n", (int)total);
-		puts(buf);
+	// Receber READY
+	char buf[10];
+	recvMsg(s, buf);
 
-		// Enviar SENHA
-		// ssize_t count;
-		char linha[512];
-		printf("senha> ");
-		fgets(linha, 511, stdin);
-		sendMsg(s, linha);
-		// count = send(s, linha, strlen(linha)+1, 0); // incluir o char \0
-		// if(count != strlen(linha)+1) logexit("send");
-	}
-
-
-	// char buf[512];
-	// memset(buf, 0, 512);
-	// unsigned total = 0;
-	// while(1) {
-	// 	count = recv(s, buf+total, 512-total, 0);
-	// 	if(count == 0) break;
-	// 	total += count;
-	// }
-
-	// printf("received %d bytes\n", (int)total);
-	// puts(buf);
-
+	// Enviar SENHA
+	char senha[10];
+	printf("senha> ");
+	scanf ("%[^\n]%*c", senha);
+	sendMsg(s, senha, 8);
+	recvMsg(s, buf);
+	sendMsg(s, "OK", 2);
+	
 	exit(EXIT_SUCCESS);
 }
-

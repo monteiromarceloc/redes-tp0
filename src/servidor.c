@@ -8,35 +8,53 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+// VARIÁVEIS GLOBAIS
+char senha_prof[9], senha_aluno[9];
+
+struct dados {
+	int sock;
+	struct sockaddr_in addr;
+};
+
+// FUNÇÕES AUXILIARES
 void logexit(const char *str){
 	printf("Error: %s\n", str);
 	perror(str);
 	exit(EXIT_FAILURE);
 }
 
-void sendMsg(const int r, char * msg){
-	printf("enviando %s...\n", msg);
-	int size = strlen(msg);
+void sendMsg(const int r, char * msg, int size){
+	printf("Enviando %s...\n", msg);
 	char buf[size];
 	for (int i = 0; i < size; i++){
 		buf[i] = msg[i];
 	}
-	send(r, buf, size, 0);
-	printf("enviou\n");
+	ssize_t count;
+	count = send(r, buf, size, 0);
+	printf("Enviou %d bytes\n", (int)count);
+	if(count != size) logexit("send");
 }
 
 void recvMsg(const int r, char* buf){
-		printf("Aguardando msg...\n");
-		memset(buf, 0, 10);
-		size_t total = recv(r, buf, 10, 0);
-		printf("received %d bytes\n", (int)total);
-		puts(buf);
+	printf("Aguardando msg...\n");
+	memset(buf, 0, 10);
+	size_t total = recv(r, buf, 10, 0);
+	printf("Recebeu %d bytes\n", (int)total);
+	printf("Tamanho recebido: %d\n", (int)strlen(buf));
+	printf("%s\n", buf);
 }
 
-struct dados {
-	int sock;
-	struct sockaddr_in addr;
-};
+void randomString(char *str, int size){
+	const char charset[] = "abcdefghijklmnopqrstuvwxyz0123456789";
+	if (size) {
+		size--;
+		for (int n = 0; n < size; n++) {
+			int key = rand() % (int) (sizeof charset - 1);
+			str[n] = charset[key];
+		}
+		str[size]='\0';
+	}
+}
 
 void * client_thread(void *param) {
 
@@ -48,33 +66,50 @@ void * client_thread(void *param) {
 	char ipcliente[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(dd->addr.sin_addr), ipcliente, 512);
 	
-	printf("thread %x para conexao de %s %d\n", (unsigned int)tid, ipcliente, (int)ntohs(dd->addr.sin_port));
+	printf("\nThread %x para conexao de %s %d\n", (unsigned int)tid, ipcliente, (int)ntohs(dd->addr.sin_port));
 
-	sendMsg(r, "READY");
+	sendMsg(r, "READY", 5);
 
 	char buf[10];
-	size_t c = recv(r, buf, 10, 0);
-	printf("recebemos %d bytes\n", (int)c);
-	puts(buf);
-
-	// sprintf(buf, "seu IP eh %s %d\n", ipcliente,
-	// 		(int)ntohs(dd->addr.sin_port));
-	// printf("enviando %s\n", buf);
-	// send(r, buf, strlen(buf)+1, 0);
-	// printf("enviou\n");
-
+	recvMsg(r, buf);
+	buf[8]='\0';
+	int isProf = strcmp(buf, senha_prof);
+	printf("isProf: %d\n", isProf);
+	if (isProf == 0) {
+		// PROF
+		sendMsg(r, "LISTA", 5);
+		recvMsg(r, buf);
+	}
+	else {
+		int isAluno = strcmp(buf, senha_prof);
+		printf("isAluno: %d\n", isAluno);
+		if (isAluno == 0){
+			// ALUNO
+			sendMsg(r, "OK", 2);
+			sendMsg(r, "MATRICULA", 9);
+			recvMsg(r, buf);
+			// TODO salvar matricula
+			sendMsg(r, "OK", 2);
+		}
+		else {
+			printf("Other stuff");
+		}
+	}
 	close(r);
 	pthread_exit(EXIT_SUCCESS);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	// Identificando argumentos
 	if(argc==1) logexit("Falta inserir porto como argumento argv");
 	int port = atoi(argv[1]);
-	printf("Porto: %d\n\n", port);
 
 	// Inicializar senhas
+	randomString(senha_prof, 9);
+	printf("Senha prof:\t%s\n", senha_prof);
+	// TODO bug na senha do prof
+	randomString(senha_aluno, 9);
+	printf("Senha aluno:\t%s\n", senha_aluno);
 
 	// Inicializar socket
 	int s;
@@ -94,7 +129,7 @@ int main(int argc, char **argv)
 		logexit("bind");
 
 	if(listen(s, 10)) logexit("listen");
-	printf("esperando conexao\n");
+	printf("Esperando conexao\n");
 
 	while(1) {
 		struct sockaddr_in raddr;
