@@ -1,7 +1,0 @@
-Aula 16/03
-
-Codificações:
-
-NRZ : bit 0 ou 1
-Manchester: 0 some, 1 desce -> problema, manda metade dos bits pois exige um clock 2 vezes mais rápido (50% eficiencia)
-NRZI: 1 muda o sinal, 0 não muda

@@ -1,78 +1,97 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
 #include <unistd.h>
+#include <stdio.h>
+#include <string.h>
 #include <pthread.h>
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
-void logexit(const char *str) {
-	// perror(str);
-  printf("Error: %s", str);
+void logexit(const char *str)
+{
+	perror(str);
 	exit(EXIT_FAILURE);
 }
 
-int main() {
-  // TODO: Gera senha prof e alunos
+struct dados {
+	int sock;
+	struct sockaddr_in addr;
+};
 
-  // Abre conecção
-  int s;
+void * client_thread(void *param) {
+	pthread_t tid = pthread_self();
+	struct dados *dd = param;
+	int r = dd->sock;
+
+	char ipcliente[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(dd->addr.sin_addr),
+			ipcliente, 512);
+
+	printf("conexao de %s %d\n", ipcliente,
+			(int)ntohs(dd->addr.sin_port));
+
+	printf("thread %x esperando receber\n",
+			(unsigned int)tid);
+	char buf[512];
+	size_t c = recv(r, buf, 512, 0);
+	printf("recebemos %d bytes\n", (int)c);
+	puts(buf);
+
+	sprintf(buf, "seu IP eh %s %d\n", ipcliente,
+			(int)ntohs(dd->addr.sin_port));
+	printf("enviando %s\n", buf);
+
+	send(r, buf, strlen(buf)+1, 0);
+	printf("enviou\n");
+
+	close(r);
+	pthread_exit(EXIT_SUCCESS);
+}
+
+int main(void)
+{
+	int s;
 	s = socket(AF_INET, SOCK_STREAM, 0);
 	if(s == -1) logexit("socket");
 
-  // TODO: setsockopt(...) para a renovar a porta
-
-  struct in_addr inaddr;
+	struct in_addr inaddr;
 	inet_pton(AF_INET, "127.0.0.1", &inaddr);
 
 	struct sockaddr_in addr;
 	struct sockaddr *addrptr = (struct sockaddr *)&addr;
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(51511);
+	addr.sin_port = htons(5152);
 	addr.sin_addr = inaddr;
 
-	if(bind(s, addrptr, sizeof(struct sockaddr_in))) logexit("bind");
-	if(listen(s, 10)) logexit("listen"); // aceita até 10 conexões
+	if(bind(s, addrptr, sizeof(struct sockaddr_in)))
+		logexit("bind");
 
-	printf("Esperando conexão\n");
+	if(listen(s, 10)) logexit("listen");
+	printf("esperando conexao\n");
 
-  while(1) {
-    // dá pra por esses caras fora do while?
-    struct sockaddr_in raddr;
-		struct sockaddr *raddrptr = (struct sockaddr *)&raddr;
+	while(1) {
+		struct sockaddr_in raddr;
+		struct sockaddr *raddrptr =
+			(struct sockaddr *)&raddr;
 		socklen_t rlen = sizeof(struct sockaddr_in);
-
-    // TODO: usar threads igual no server-mt, usar pull
-    // usar pull de threads: cria x threads e aloca novos clientes,
-    // se lotar, coloca numa fila.
 
 		int r = accept(s, raddrptr, &rlen);
 		if(r == -1) logexit("accept");
-    // TODO: adicionar timeout no r
-		char buf[512];
-		char ipcliente[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &(raddr.sin_addr),
-				ipcliente, 512);
 
-		printf("conexao de %s %d\n", ipcliente,
-				(int)ntohs(raddr.sin_port));
+		struct dados *dd = malloc(sizeof(*dd));
+		if(!dd) logexit("malloc");
+		dd->sock = r;
+		dd->addr = raddr;
 
-		size_t c = recv(r, buf, 512, 0);
-		printf("recebemos %d bytes\n", (int)c);
-		puts(buf);
-
-		sprintf(buf, "seu IP eh %s %d\n", ipcliente,
-				(int)ntohs(raddr.sin_port));
-		printf("enviando %s\n", buf);
-
-		send(r, buf, strlen(buf)+1, 0);
-		printf("enviou\n");
-
-		close(r);
+		pthread_t tid;
+		pthread_create(&tid, NULL, client_thread, dd);
 	}
 
 	exit(EXIT_SUCCESS);
-  return 0;
 }
+
+
+
+
+

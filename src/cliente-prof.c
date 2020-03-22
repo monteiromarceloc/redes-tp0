@@ -8,9 +8,9 @@
 
 #define BUFSZ 1024
 
-void logexit(const char *str) {
-	// perror(str);
-  printf("Error: %s", str);
+void logexit(const char *str)
+{
+	perror(str);
 	exit(EXIT_FAILURE);
 }
 
@@ -26,7 +26,7 @@ int main(void)
 	struct sockaddr_in addr;
 	struct sockaddr *addrptr = (struct sockaddr *)&addr;
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(51511);
+	addr.sin_port = htons(5152);
 	addr.sin_addr = inaddr;
 
 	s = socket(AF_INET, SOCK_STREAM, 0);
