@@ -14,23 +14,37 @@ void logexit(const char *str){
 
 void sendMsg(const int r, char * msg, int size){
 	printf("Enviando %s...\n", msg);
-	char buf[size];
+	char sendBuf[size];
 	for (int i = 0; i < size; i++){
-		buf[i] = msg[i];
+		sendBuf[i] = msg[i];
 	}
 	ssize_t count;
-	count = send(r, buf, size, 0);
+	count = send(r, sendBuf, size, 0);
 	printf("Enviou %d bytes\n", (int)count);
 	if(count != size) logexit("send");
 }
 
-void recvMsg(const int r, char* buf){
+void recvMsg(const int r, char* recvBuf){
 	printf("Aguardando msg...\n");
-	memset(buf, 0, 10);
-	size_t total = recv(r, buf, 10, 0);
+	memset(recvBuf, 0, 10);
+	size_t total = recv(r, recvBuf, 10, 0);
 	printf("Recebeu %d bytes\n", (int)total);
-	printf("Tamanho recebido: %d\n", (int)strlen(buf));
-	printf("%s\n", buf);
+	printf("Tamanho recebido: %d\n", (int)strlen(recvBuf));
+	printf("%s\n", recvBuf);
+}
+
+void recvList(const int r, char* recvBuf){
+	printf("Aguardando msg...\n");
+	// memset(recvBuf, 0, 512);
+	unsigned total = 0;
+	ssize_t count;
+	while(1) {
+		count = recv(r, recvBuf+total, 512-total, 0);
+		printf("%s\n", recvBuf);
+		if(count == 0 || strstr(recvBuf, "\0") != NULL) break;
+		total += count;
+	}
+	printf("Recebeu %d bytes\n", (int)total);
 }
 
 int main(int argc, char **argv)
@@ -68,7 +82,8 @@ int main(int argc, char **argv)
 	sendMsg(s, senha, 8);
 
 	// Recebe LISTA
-	recvMsg(s, buf);
+	char lista_de_presenca[512];
+	recvList(s, lista_de_presenca);
 	sendMsg(s, "OK", 2);
 
 	exit(EXIT_SUCCESS);
