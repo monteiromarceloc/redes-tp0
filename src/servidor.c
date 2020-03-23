@@ -7,9 +7,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <time.h>
 
 // VARIÁVEIS GLOBAIS
 char senha_prof[9], senha_aluno[9];
+char lista_de_presenca[4][10];
+int count_presentes;
 
 struct dados {
 	int sock;
@@ -56,6 +59,21 @@ void randomString(char *str, int size){
 	}
 }
 
+void formatList(char * formatedList){
+	if (count_presentes > 0){
+		strcpy(formatedList, lista_de_presenca[0]);
+		strcat(formatedList, "\n");
+		for (int i = 1; i < count_presentes-1; i++){
+			strcat(formatedList, lista_de_presenca[i]);
+			strcat(formatedList, "\n");
+		}
+		if (count_presentes > 1) strcat(formatedList, lista_de_presenca[count_presentes-1]);
+	} else {
+		strcpy(formatedList, "");
+	}
+	strcat(formatedList, "\0");
+}
+
 void * client_thread(void *param) {
 
 	// Estabelecendo conexão
@@ -70,25 +88,30 @@ void * client_thread(void *param) {
 
 	sendMsg(r, "READY", 5);
 
-	char buf[10];
-	recvMsg(r, buf);
-	buf[8]='\0';
-	int isProf = strcmp(buf, senha_prof);
+	char senhaBuf[9];
+	recvMsg(r, senhaBuf);
+	senhaBuf[8]='\0';
+	int isProf = strcmp(senhaBuf, senha_prof);
 	printf("isProf: %d\n", isProf);
 	if (isProf == 0) {
 		// PROF
-		sendMsg(r, "LISTA", 5);
-		recvMsg(r, buf);
+		char formatedList[count_presentes*11];
+		formatList(formatedList);
+		sendMsg(r, formatedList, count_presentes*11);
+		char OKbuf[3];
+		recvMsg(r, OKbuf);
 	}
 	else {
-		int isAluno = strcmp(buf, senha_aluno);
+		int isAluno = strcmp(senhaBuf, senha_aluno);
 		printf("isAluno: %d\n", isAluno);
 		if (isAluno == 0){
 			// ALUNO
 			sendMsg(r, "OK", 2);
 			sendMsg(r, "MATRICULA", 9);
-			recvMsg(r, buf);
-			// TODO salvar matricula
+			char matriculaBuf[10];
+			recvMsg(r, matriculaBuf);
+			strcpy(lista_de_presenca[count_presentes], matriculaBuf);
+			count_presentes++;
 			sendMsg(r, "OK", 2);
 		}
 		else {
@@ -105,11 +128,14 @@ int main(int argc, char **argv) {
 	int port = atoi(argv[1]);
 
 	// Inicializar senhas
+	srand ( time(NULL) );
 	randomString(senha_prof, 9);
 	printf("Senha prof:\t%s\n", senha_prof);
-	// TODO bug na senha do prof
 	randomString(senha_aluno, 9);
 	printf("Senha aluno:\t%s\n", senha_aluno);
+	// TODO senhas nõ estão aleatórias
+
+	count_presentes = 0;
 
 	// Inicializar socket
 	int s;
