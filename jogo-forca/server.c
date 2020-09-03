@@ -49,9 +49,10 @@ int main(int argc, char **argv) {
         char caddrstr[BUFSZ];
         addrtostr(caddr, caddrstr, BUFSZ);
         printf("[log] connection from %s\n", caddrstr);
+// ------------------------------------------------------------------
 
-        sendMsg(csock, "13");
-
+        sendByte(csock);
+        // sendMsg(csock, "13");
         serverRecv(csock);
 
         char msg[BUFSZ] = "";

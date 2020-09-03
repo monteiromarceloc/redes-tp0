@@ -6,10 +6,30 @@
 #include <arpa/inet.h>
 
 #define BUFSZ 1024
+#define MAX 3
 
 void logexit(const char *str) {
 	perror(str);
 	exit(EXIT_FAILURE);
+}
+
+void sendByte(int s) {
+    printf("here1");
+    unsigned char msg[MAX]; 
+    msg[0] = 1;
+    msg[1] = 3;
+    printf("here2");
+    int count = send(s, msg, MAX, 0);
+    printf("%d", count);
+    if(count != MAX) logexit("send");
+}
+
+void recvBytes(int s){
+    printf("here3");
+    unsigned char buf[MAX]; 
+    memset(buf, 0, MAX);
+    size_t count = recv(s, buf, MAX, 0);
+    printf("recieved %d bytes: %u %u\n", (int)count, buf[0], buf[1]);
 }
 
 void sendMsg(int s, char* msg) {
