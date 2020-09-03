@@ -45,11 +45,11 @@ int main(int argc, char **argv) {
     unsigned total = 0;
     while(1){
         count = recv(s, buf + total, BUFSZ-total, 0);
-        if(count != 0) break;
+        if(count == 0) break;
         total += count;
     }
     close(s);
-    printf("recieved %u bytes\n", total);
+    printf("recieved %u bytes:\n%s\n", total, buf);
     exit(EXIT_SUCCESS);
     return 0;
 }

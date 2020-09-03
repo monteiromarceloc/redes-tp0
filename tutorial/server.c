@@ -25,6 +25,10 @@ int main(int argc, char **argv) {
     int s = socket(storage.ss_family, SOCK_STREAM, 0);
     if(s == -1) logexit("socket");
 
+    int enable = 1;
+    if (0 != setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)))
+        logexit("setsockopt");
+
     struct sockaddr *addr = (struct sockaddr *)(&storage);
     if(0 != bind(s, addr, sizeof(storage))) logexit("bind");
     if(0 != listen(s, 10)) logexit("listen");
