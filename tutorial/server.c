@@ -10,17 +10,17 @@
 
 #define BUFSZ 1024
 
-void usage(char *name) {
-    printf("usage: %s <v4|v6> <server port>\n", name); // TODO: remove v4|v6 and fid a way to recognize IP family
-    printf("example: %s: v4 51511\n", name);
+void usage(int argc, char **argv) {
+    printf("usage: %s <v4|v6> <server port>\n", argv[0]);
+    printf("example: %s: v4 51511\n", argv[0]);
     exit(EXIT_FAILURE);
 }
 
 int main(int argc, char **argv) {
-    if (argc < 3) usage(argv[0]);
+    if (argc < 3) usage(argc, argv);
 
     struct sockaddr_storage storage; // Handle socket ipv4 or ipv6
-    if(0 != server_sockaddr_init(argv[1], argv[2], &storage)) usage(argv[0]);
+    if(0 != server_sockaddr_init(argv[1], argv[2], &storage)) usage(argc, argv);
 
     int s = socket(storage.ss_family, SOCK_STREAM, 0);
     if(s == -1) logexit("socket");

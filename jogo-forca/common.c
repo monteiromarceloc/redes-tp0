@@ -5,9 +5,37 @@
 #include <inttypes.h>
 #include <arpa/inet.h>
 
+#define BUFSZ 1024
+
 void logexit(const char *str) {
 	perror(str);
 	exit(EXIT_FAILURE);
+}
+
+void sendMsg(int s, char* msg) {
+    int count = send(s, msg, strlen(msg)+1, 0);
+    if(count != strlen(msg)+1) logexit("send");
+}
+
+void recvMsg(int s){
+    char buf[BUFSZ];
+    memset(buf, 0, BUFSZ);
+    unsigned total = 0;
+    int count = 0;
+    while(1){
+        count = recv(s, buf + total, BUFSZ-total, 0);
+        if(count == 0) break;
+        total += count;
+    }
+    printf("recieved %u bytes:\n%s\n", total, buf);
+}
+
+void getAndSendMsg(int s) {
+    char buf[BUFSZ];
+    memset(buf, 0, BUFSZ); // Inicializar buffer com 0
+    printf("msg> ");
+    fgets(buf, BUFSZ-1, stdin);
+    sendMsg(s, buf);
 }
 
 int addrparse(const char*addrstr, const char *portstr, struct sockaddr_storage *storage) {

@@ -11,17 +11,17 @@
 
 #define BUFSZ 1024
 
-void usage(char* name) {
-    printf("usage: %s <server IP> <server port>\n", name);
-    printf("example: %s: 127.0.0.1 51511\n", name);
+void usage(int argc, char **argv) {
+    printf("usage: %s <server IP> <server port>\n", argv[0]);
+    printf("example: %s: 127.0.0.1 51511\n", argv[0]);
     exit(EXIT_FAILURE);
 }
 
 int main(int argc, char **argv) {
-    if (argc < 3) usage(argv[0]);
+    if (argc < 3) usage(argc, argv);
 
     struct sockaddr_storage storage; // Handle socket ipv4 or ipv6
-    if(0 != addrparse(argv[1], argv[2], &storage)) usage(argv[0]);
+    if(0 != addrparse(argv[1], argv[2], &storage)) usage(argc, argv);
 
     int s = socket(storage.ss_family, SOCK_STREAM, 0);
     if(s == -1) logexit("socket");
