@@ -50,10 +50,9 @@ int main(int argc, char **argv) {
         addrtostr(caddr, caddrstr, BUFSZ);
         printf("[log] connection from %s\n", caddrstr);
 
-        char buf[BUFSZ];
-        memset(buf, 0, BUFSZ);
-        size_t count = recv(csock, buf, BUFSZ, 0);
-        printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, buf);
+        sendMsg(csock, "13");
+
+        serverRecv(csock);
 
         char msg[BUFSZ] = "";
         sprintf(msg, "remote endpoint: %.1000s\n", caddrstr);

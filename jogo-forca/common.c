@@ -17,6 +17,13 @@ void sendMsg(int s, char* msg) {
     if(count != strlen(msg)+1) logexit("send");
 }
 
+void serverRecv(int s){
+    char buf[BUFSZ];
+    memset(buf, 0, BUFSZ);
+    size_t count = recv(s, buf, BUFSZ, 0);
+    printf("recieved %d bytes: %s\n", (int)count, buf);
+}
+
 void recvMsg(int s){
     char buf[BUFSZ];
     memset(buf, 0, BUFSZ);
@@ -37,6 +44,12 @@ void getAndSendMsg(int s) {
     fgets(buf, BUFSZ-1, stdin);
     sendMsg(s, buf);
 }
+
+
+
+
+
+
 
 int addrparse(const char*addrstr, const char *portstr, struct sockaddr_storage *storage) {
     if(addrstr == NULL || portstr == NULL) return -1;

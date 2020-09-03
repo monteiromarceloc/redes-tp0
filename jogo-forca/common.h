@@ -7,9 +7,13 @@ void logexit(const char *str);
 
 void sendMsg(int s, char *msg);
 
+void getAndSendMsg(int s);
+
+void serverRecv(int s);
+
 void recvMsg(int s);
 
-void getAndSendMsg(int s);
+int charToInt(char c);
 
 int addrparse(const char*addrstr, const char *portstr, struct sockaddr_storage *storage);
 

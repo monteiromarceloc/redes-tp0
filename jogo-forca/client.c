@@ -33,8 +33,8 @@ int main(int argc, char **argv) {
     addrtostr(addr, addrstr, BUFSZ);
     printf("connected to %s\n", addrstr);
 
+    serverRecv(s);
     getAndSendMsg(s);
-    recvMsg(s);
 
     close(s);
     exit(EXIT_SUCCESS);
