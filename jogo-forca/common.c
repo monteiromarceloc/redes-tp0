@@ -6,30 +6,11 @@
 #include <arpa/inet.h>
 
 #define BUFSZ 1024
-#define MAX 3
+#define MAX 2
 
 void logexit(const char *str) {
 	perror(str);
 	exit(EXIT_FAILURE);
-}
-
-void sendByte(int s) {
-    printf("here1");
-    unsigned char msg[MAX]; 
-    msg[0] = 1;
-    msg[1] = 3;
-    printf("here2");
-    int count = send(s, msg, MAX, 0);
-    printf("%d", count);
-    if(count != MAX) logexit("send");
-}
-
-void recvBytes(int s){
-    printf("here3");
-    unsigned char buf[MAX]; 
-    memset(buf, 0, MAX);
-    size_t count = recv(s, buf, MAX, 0);
-    printf("recieved %d bytes: %u %u\n", (int)count, buf[0], buf[1]);
 }
 
 void sendMsg(int s, char* msg) {
@@ -37,39 +18,31 @@ void sendMsg(int s, char* msg) {
     if(count != strlen(msg)+1) logexit("send");
 }
 
-void serverRecv(int s){
-    char buf[BUFSZ];
-    memset(buf, 0, BUFSZ);
-    size_t count = recv(s, buf, BUFSZ, 0);
-    printf("recieved %d bytes: %s\n", (int)count, buf);
+void send1(int s, unsigned int tam) {
+    unsigned char msg[MAX]; 
+    msg[0] = 1;
+    msg[1] = (unsigned char)tam;
+    int count = send(s, msg, MAX, 0);
+    if(count != MAX) logexit("send");
 }
 
-void recvMsg(int s){
-    char buf[BUFSZ];
-    memset(buf, 0, BUFSZ);
-    unsigned total = 0;
-    int count = 0;
-    while(1){
-        count = recv(s, buf + total, BUFSZ-total, 0);
-        if(count == 0) break;
-        total += count;
-    }
-    printf("recieved %u bytes:\n%s\n", total, buf);
-}
-
-void getAndSendMsg(int s) {
-    char buf[BUFSZ];
-    memset(buf, 0, BUFSZ); // Inicializar buffer com 0
-    printf("msg> ");
-    fgets(buf, BUFSZ-1, stdin);
-    sendMsg(s, buf);
+void send2(int s) {
+    printf("palpite> ");
+    unsigned char msg[MAX]; 
+    msg[0] = 2;
+    msg[1] = getchar();
+    int count = send(s, msg, MAX, 0);
+    if(count != MAX) logexit("send");
 }
 
 
 
-
-
-
+void recvBytes(int s){
+    unsigned char buf[MAX]; 
+    memset(buf, 0, MAX);
+    size_t count = recv(s, buf, MAX, 0);
+    printf("recieved %d bytes: %u %u\n", (int)count, buf[0], buf[1]);
+}
 
 int addrparse(const char*addrstr, const char *portstr, struct sockaddr_storage *storage) {
     if(addrstr == NULL || portstr == NULL) return -1;

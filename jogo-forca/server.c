@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 
 #define BUFSZ 1024
-#define WORD "bob" // TODO: handle casesensitiveness
+#define WORD "abcd" // TODO: handle casesensitiveness
 
 void usage(char *name) {
     printf("usage: %s <v4|v6> <server port>\n", name); // TODO: remove v4|v6 and fid a way to recognize IP family
@@ -50,14 +50,9 @@ int main(int argc, char **argv) {
         addrtostr(caddr, caddrstr, BUFSZ);
         printf("[log] connection from %s\n", caddrstr);
 // ------------------------------------------------------------------
-
-        sendByte(csock);
-        // sendMsg(csock, "13");
-        serverRecv(csock);
-
-        char msg[BUFSZ] = "";
-        sprintf(msg, "remote endpoint: %.1000s\n", caddrstr);
-        sendMsg(csock, msg);
+        unsigned int tam = strlen(WORD);
+        send1(csock, tam);
+        recvBytes(csock);
 
         close(csock);
     }

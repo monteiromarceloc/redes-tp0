@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 // ------------------------------------------------------------------
 
     recvBytes(s);
-    getAndSendMsg(s);
+    send2(s);
 
     close(s);
     exit(EXIT_SUCCESS);

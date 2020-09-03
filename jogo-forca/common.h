@@ -5,19 +5,12 @@
 
 void logexit(const char *str);
 
-void sendByte(int s);
+void send1(int s, unsigned int tam);
+
+void send2(int s);
 
 void recvBytes(int s);
 
-void sendMsg(int s, char *msg);
-
-void getAndSendMsg(int s);
-
-void serverRecv(int s);
-
-void recvMsg(int s);
-
-int charToInt(char c);
 
 int addrparse(const char*addrstr, const char *portstr, struct sockaddr_storage *storage);
 
