@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 
 #define BUFSZ 128
-#define WORD "abcd" // TODO: handle casesensitiveness
+#define WORD "abca" // TODO: handle casesensitiveness
 
 void usage(char *name) {
     printf("usage: %s <v4|v6> <server port>\n", name); // TODO: remove v4|v6 and fid a way to recognize IP family
@@ -60,7 +60,6 @@ int main(int argc, char **argv) {
             palpite = (char)recvByte(csock);
             printf("palpite: %c\n", palpite);
             count = charFind(palpite, WORD, tam, pos);
-            printf("%d %d\n", count, pos[0]);
             found += count;
             if (found >= tam) {
                 send4(s);

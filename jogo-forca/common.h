@@ -15,7 +15,7 @@ void send4(int s);
 
 unsigned char recvByte(int s);
 
-void recvAnswer(int s, int max);
+int recvAnswer(int s, int max);
 
 int charFind(char c, char* s, int len, int* pos);
 

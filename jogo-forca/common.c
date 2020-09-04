@@ -25,6 +25,7 @@ void send2(int s) {
     unsigned char msg[TAM]; 
     msg[0] = 2;
     msg[1] = getchar();
+    getchar(); // must be here due to the '\n'
     int count = send(s, msg, TAM, 0);
     if(count != TAM) logexit("send");
 }
@@ -40,10 +41,13 @@ void send3(int s, int count, int* pos) {
 }
 
 void send4(int s) {
+    printf("Vai acabar\n");
     unsigned char msg[1];
     msg[0] = 4;
-    int count = send(s, msg, 1, 0);
+    int count = send(s, msg, 1, 0); // TODO: something is wrong here
+    printf("game over send: %d", count);
     if(count != 1) logexit("send");
+    printf("Acabou!\n");
 }
 
 unsigned char recvByte(int s){
@@ -55,22 +59,13 @@ unsigned char recvByte(int s){
     return buf[1];
 }
 
-void recvAnswer(int s, int max){
+int recvAnswer(int s, int max){
     unsigned char buf[max]; 
     memset(buf, 0, max);
-
-    // int total = 0;
-    // int count;
-    // while(1){
-    //     count = recv(s, buf+total, 1, 0);
-    //     printf("count: %d\n", count);
-    //     if(count == 0) break;
-    //     total += count;
-    // }
-    size_t count = recv(s, buf, max, 0);
-
-    if(buf[0] == 4) printf("Acabou");
+    ssize_t count = recv(s, buf, max, 0);
+    if((int)count == 0) return 1;
     printf("count: %d tipo: %u ocorrencias: %u\n", (int)count, buf[0], buf[1]);
+    return 0;
 }
 
 int charFind(char c, char* s, int len, int* pos){

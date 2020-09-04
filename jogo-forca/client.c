@@ -37,12 +37,12 @@ int main(int argc, char **argv) {
     int tamanho = (int)recvByte(s);
     printf("tamanho: %d\n", tamanho);
 
-    send2(s);
-    recvAnswer(s, tamanho+2);
-    getchar();
-    send2(s);
-    recvAnswer(s, tamanho+2);
-
+    while(1){
+        send2(s);
+        int done = recvAnswer(s, tamanho+2);
+        if(done == 1) break;
+    }
+    printf("Você conseguiu!\n");
     close(s);
     exit(EXIT_SUCCESS);
     return 0;
