@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#define BUFSZ 1024
+#define BUFSZ 128
 #define WORD "abcd" // TODO: handle casesensitiveness
 
 void usage(char *name) {
@@ -50,9 +50,15 @@ int main(int argc, char **argv) {
         addrtostr(caddr, caddrstr, BUFSZ);
         printf("[log] connection from %s\n", caddrstr);
 // ------------------------------------------------------------------
+        
         unsigned int tam = strlen(WORD);
         send1(csock, tam);
-        recvBytes(csock);
+        unsigned char palpite = (char)recvByte(csock);
+        printf("palpite: %c\n", palpite);
+        int pos[tam];
+        int count = charFind(palpite, WORD, tam, pos);
+        printf("%d %d\n", count, pos[0]);
+        send3(csock, count, pos);
 
         close(csock);
     }

@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define BUFSZ 1024
+#define BUFSZ 128
 
 void usage(char* name) {
     printf("usage: %s <server IP> <server port>\n", name);
@@ -34,8 +34,10 @@ int main(int argc, char **argv) {
     printf("connected to %s\n", addrstr);
 // ------------------------------------------------------------------
 
-    recvBytes(s);
+    int tamanho = (int)recvByte(s);
+    printf("tamanho: %d\n", tamanho);
     send2(s);
+    recvAnswer(s, tamanho+2);
 
     close(s);
     exit(EXIT_SUCCESS);
