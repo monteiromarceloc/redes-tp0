@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     int s = connectToServer(argc, argv);
 
     int tam = (int)recvByte(s);
-    printf("Número de caracteres: %d\n", tam);
+    printf("\nNúmero de caracteres: %d\n", tam);
     char word[tam];
     memset(word,'_',tam);
 

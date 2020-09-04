@@ -12,6 +12,11 @@ void logexit(const char *str) {
 	exit(EXIT_FAILURE);
 }
 
+char _upper(char c){
+    if(c<96) return c;
+    else return c-32;
+}
+
 void send1(int s, unsigned int tam) {
     unsigned char msg[TAM]; 
     msg[0] = 1;
@@ -60,16 +65,18 @@ int recvAnswer(int s, int tam, char* word, char palpite) {
     if((int)buf[0] == 4) {
         for(int i = 0; i <= tam; i++)
   		    if(word[i] == '_')
-  			    word[i] = palpite;
+  			    word[i] = _upper(palpite);
         return 1;
     }
 
     if(recv(s, buf+1, 1, 0) != 1) logexit("recvByte");
     int occ = (int)buf[1];
+    if(occ == 0) return 0;
+
     if(recv(s, buf+2, occ, 0) != occ) logexit("recvByte");
     for(int i=0; i<occ; i++){
         int atIndex = (int)buf[2+i];
-        word[atIndex] = palpite;
+        word[atIndex] = _upper(palpite);
     }
     return 0;
 }
@@ -77,7 +84,7 @@ int recvAnswer(int s, int tam, char* word, char palpite) {
 int charFind(char c, char* s, int len, int* pos){
     int count = 0;
     for(int i=0; i<len; i++) {
-        if(s[i] == c) {
+        if(_upper(s[i]) == _upper(c)) {
             pos[count]=i;
             count++;
         }

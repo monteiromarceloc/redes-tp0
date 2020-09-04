@@ -134,7 +134,8 @@ int initSocketServer(int argc, char **argv, int proto){
     
     char addrstr[BUFSZ];
     addrtostr(addr, addrstr, BUFSZ);
-    printf("bound to %s, waiting connection\n", addrstr);
+    // printf("bound to %s, waiting connection\n", addrstr);
+    printf("[log] waiting connection\n");
     return s;
 }
 
@@ -165,6 +166,6 @@ int connectToServer(int argc, char **argv) {
 
     char addrstr[BUFSZ];
     addrtostr(addr, addrstr, BUFSZ);
-    printf("connected to %s\n", addrstr);
+    // printf("Connected to %s\n", addrstr);
     return s;
 }

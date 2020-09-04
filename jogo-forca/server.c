@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 
 #define IPv 4
-#define WORD "arara" // TODO: handle casesensitiveness
+#define WORD "arara"
 
 int main(int argc, char **argv) {
     int s = initSocketServer(argc, argv, IPv);
@@ -27,16 +27,16 @@ int main(int argc, char **argv) {
 
         while(1){
             palpite = (char)recvByte(csock);
-            printf("palpite: %c\n", palpite);
             count = charFind(palpite, WORD, tam, pos);
             found += count;
-            if (found >= tam) {
-                send4(csock);
-                close(csock);
-                break;
-            }
+            if (found >= tam) break;
+
             send3(csock, count, pos);
         }
+        send4(csock);
+        close(csock);
+        printf("[log] connection closed. Waiting new connection\n");
+
     }
     exit(EXIT_SUCCESS);
     return 0;
