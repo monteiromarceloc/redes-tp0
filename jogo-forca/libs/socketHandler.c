@@ -24,19 +24,19 @@ void _usage(char* name) {
 }
 
 void _usage2(char *name) {
-    printf("usage: %s <v4|v6> <server port>\n", name); // TODO: remove v4|v6 and fid a way to recognize IP family
-    printf("example: %s: v4 51511\n", name);
+    printf("usage: %s <server port>\n", name);
+    printf("example: %s: 51511\n", name);
     exit(EXIT_FAILURE);
 }
 
 int addrparse(const char*addrstr, const char *portstr, struct sockaddr_storage *storage) {
     if(addrstr == NULL || portstr == NULL) return -1;
     
-    uint16_t port = (uint16_t)atoi(portstr); // unsigned short
+    uint16_t port = (uint16_t)atoi(portstr);
     if (port == 0) return -1;
-    port = htons(port); // host to network short
+    port = htons(port);
 
-    struct in_addr inaddr4; // 32-bit IP addr
+    struct in_addr inaddr4;
     if(inet_pton(AF_INET, addrstr, &inaddr4)) {
         struct sockaddr_in *addr4 = (struct sockaddr_in *)storage;
         addr4->sin_family = AF_INET;
@@ -45,13 +45,12 @@ int addrparse(const char*addrstr, const char *portstr, struct sockaddr_storage *
         return 0;
     }
 
-    struct in6_addr inaddr6; // 128-bit IPv6 addr
+    struct in6_addr inaddr6;
     if(inet_pton(AF_INET6, addrstr, &inaddr6)) {
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)storage;
         addr6->sin6_family = AF_INET6;
         addr6->sin6_port = port;
-        // addr6->sin6_addr = inaddr6;
-        memcpy(&(addr6->sin6_addr), &inaddr6, sizeof(inaddr6)); // deve ser feito asim já que é um arranjo de bytes
+        memcpy(&(addr6->sin6_addr), &inaddr6, sizeof(inaddr6));
         return 0;
     }
 
@@ -66,34 +65,34 @@ void addrtostr(const struct sockaddr *addr, char *str, size_t strsize) {
         version = 4;
         struct sockaddr_in *addr4 = (struct sockaddr_in *)addr;
         if(!inet_ntop(AF_INET, &(addr4->sin_addr), addrstr, INET6_ADDRSTRLEN + 1)) _logexit("ntop");
-        port = ntohs(addr4->sin_port); // network to host short
+        port = ntohs(addr4->sin_port);
 
     } else if (addr->sa_family == AF_INET6) {
         version = 6;
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)addr;
         if(!inet_ntop(AF_INET6, &(addr6->sin6_addr), addrstr, INET6_ADDRSTRLEN + 1)) _logexit("ntop");
-        port = ntohs(addr6->sin6_port); // network to host short
+        port = ntohs(addr6->sin6_port);
 
     } else _logexit("addrtostr unkown protocol family");
 
     if(str) snprintf(str, strsize, "IPv%d %s %hu", version, addrstr, port);
 }
 
-int server_sockaddr_init(const char *proto, const char *portstr, struct sockaddr_storage *storage) {
+int server_sockaddr_init(const int proto, const char *portstr, struct sockaddr_storage *storage) {
 
-    uint16_t port = (uint16_t)atoi(portstr); // unsigned short
+    uint16_t port = (uint16_t)atoi(portstr);
     if (port == 0) return -1;
-    port = htons(port); // host to network short
+    port = htons(port);
 
     memset(storage, 0, sizeof(*storage));
-    if (0 == strcmp(proto, "v4")){
+    if (proto == 4){
         struct sockaddr_in *addr4 = (struct sockaddr_in *)storage;
         addr4->sin_family = AF_INET;
-        addr4->sin_addr.s_addr = INADDR_ANY; // sin_addr is struct with int (s_addr) inside
+        addr4->sin_addr.s_addr = INADDR_ANY;
         addr4->sin_port = port;
         return 0;
 
-    } else if (0 == strcmp(proto, "v6")){
+    } else if (proto == 6){
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)storage;
         addr6->sin6_family = AF_INET6;
         addr6->sin6_addr = in6addr_any;
@@ -103,11 +102,24 @@ int server_sockaddr_init(const char *proto, const char *portstr, struct sockaddr
     return -1;
 }
 
-int initSocketServer(int argc, char **argv){
-    if (argc < 3) _usage2(argv[0]);
+int checkIpAddress(char *ipAddress)
+{
+    struct sockaddr_in6 sa6;
+    int result = inet_pton(AF_INET, ipAddress, &(sa6.sin6_addr));
+    if (result != 0) return 6;
 
-    struct sockaddr_storage storage; // Handle socket ipv4 or ipv6
-    if(0 != server_sockaddr_init(argv[1], argv[2], &storage)) _usage2(argv[0]);
+    struct sockaddr_in sa;
+    result = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+    if (result != 0) return 4;
+
+    return 0;
+}
+
+int initSocketServer(int argc, char **argv, int proto){
+    if (argc < 2) _usage2(argv[0]);
+
+    struct sockaddr_storage storage;
+    if(0 != server_sockaddr_init(proto, argv[1], &storage)) _usage2(argv[0]);
 
     int s = socket(storage.ss_family, SOCK_STREAM, 0);
     if(s == -1) _logexit("socket");
@@ -142,14 +154,14 @@ int acceptConnection(int s) {
 
 int connectToServer(int argc, char **argv) {
     if (argc < 3) _usage(argv[0]);
-    struct sockaddr_storage storage; // Handle socket ipv4 or ipv6
+    struct sockaddr_storage storage;
     if(0 != addrparse(argv[1], argv[2], &storage)) _usage(argv[0]);
 
     int s = socket(storage.ss_family, SOCK_STREAM, 0);
     if(s == -1) _logexit("socket");
 
     struct sockaddr *addr = (struct sockaddr *)(&storage);
-    if(0 != connect(s, addr, sizeof(storage))) _logexit("connect"); // storage has size of addr content
+    if(0 != connect(s, addr, sizeof(storage))) _logexit("connect");
 
     char addrstr[BUFSZ];
     addrtostr(addr, addrstr, BUFSZ);

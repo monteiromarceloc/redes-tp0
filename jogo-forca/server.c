@@ -9,10 +9,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#define IPv 4
 #define WORD "arara" // TODO: handle casesensitiveness
 
 int main(int argc, char **argv) {
-    int s = initSocketServer(argc, argv);
+    int s = initSocketServer(argc, argv, IPv);
     unsigned int tam = strlen(WORD);
     
     while(1){
