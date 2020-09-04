@@ -9,27 +9,28 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#define WORD "abca" // TODO: handle casesensitiveness
+#define WORD "arara" // TODO: handle casesensitiveness
 
 int main(int argc, char **argv) {
     int s = initSocketServer(argc, argv);
+    unsigned int tam = strlen(WORD);
     
     while(1){
-        int csock = acceptConnection(s);
-        
         int found = 0;
-        unsigned int tam = strlen(WORD);
         unsigned char palpite;
         int pos[tam], count;
+        memset(pos, -1, tam);
 
+        int csock = acceptConnection(s);
         send1(csock, tam);
+
         while(1){
             palpite = (char)recvByte(csock);
             printf("palpite: %c\n", palpite);
             count = charFind(palpite, WORD, tam, pos);
             found += count;
             if (found >= tam) {
-                send4(s);
+                send4(csock);
                 close(csock);
                 break;
             }

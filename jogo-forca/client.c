@@ -12,12 +12,15 @@
 int main(int argc, char **argv) {
     int s = connectToServer(argc, argv);
 
-    int tamanho = (int)recvByte(s);
-    printf("tamanho: %d\n", tamanho);
+    int tam = (int)recvByte(s);
+    printf("Número de caracteres: %d\n", tam);
+    char word[tam];
+    memset(word,'_',tam);
 
     while(1){
-        send2(s);
-        int done = recvAnswer(s, tamanho+2);
+        char palpite = (char)send2(s);
+        int done = recvAnswer(s, tam, word, palpite);
+        printf("%s\n", word);
         if(done == 1) break;
     }
     printf("Você conseguiu!\n");

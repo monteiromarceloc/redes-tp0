@@ -20,7 +20,7 @@ void send1(int s, unsigned int tam) {
     if(count != TAM) logexit("send");
 }
 
-void send2(int s) {
+char send2(int s) {
     printf("\npalpite> ");
     unsigned char msg[TAM]; 
     msg[0] = 2;
@@ -28,26 +28,25 @@ void send2(int s) {
     getchar(); // must be here due to the '\n'
     int count = send(s, msg, TAM, 0);
     if(count != TAM) logexit("send");
+    return msg[1];
 }
 
 void send3(int s, int count, int* pos) {
     unsigned char msg[2+count]; 
     msg[0] = 3;
     msg[1] = count;
-    for(int i=2; i<2+count; i++)
-        msg[i]=pos[i];
+    for(int i=0; i<count; i++){
+        msg[2+i]=pos[i];
+    }
     int count2 = send(s, msg, 2+count, 0);
     if(count2 != 2+count) logexit("send");
 }
 
 void send4(int s) {
-    printf("Vai acabar\n");
-    unsigned char msg[1];
+    unsigned char msg[1]; 
     msg[0] = 4;
-    int count = send(s, msg, 1, 0); // TODO: something is wrong here
-    printf("game over send: %d", count);
+    int count = send(s, msg, 1, 0);
     if(count != 1) logexit("send");
-    printf("Acabou!\n");
 }
 
 unsigned char recvByte(int s){
@@ -59,12 +58,28 @@ unsigned char recvByte(int s){
     return buf[1];
 }
 
-int recvAnswer(int s, int max){
-    unsigned char buf[max]; 
-    memset(buf, 0, max);
-    ssize_t count = recv(s, buf, max, 0);
-    if((int)count == 0) return 1;
-    printf("count: %d tipo: %u ocorrencias: %u\n", (int)count, buf[0], buf[1]);
+int recvAnswer(int s, int tam, char* word, char palpite){ // TODO: check buf[0]
+    unsigned char buf0[1], buf1[1];
+    
+    recv(s, buf0, 1, 0); // TODO: check error at all send and recv
+    if((int)buf0[0] == 4) {
+        for(int i = 0; i <= tam; i++)
+  		    if(word[i] == '_')
+  			    word[i] = palpite;
+        return 1;
+    }
+
+    recv(s, buf1, 1, 0);
+    int occ = (int)buf1[0];
+
+    unsigned char buf2[occ];
+    memset(buf2, 0, occ);
+    recv(s, buf2, occ, 0);
+    
+    for(int i=0; i<occ; i++){
+        int atIndex = (int)buf2[i];
+        word[atIndex] = palpite;
+    }
     return 0;
 }
 
