@@ -11,6 +11,8 @@ void send2(int s);
 
 void send3(int s, int count, int* pos);
 
+void send4(int s);
+
 unsigned char recvByte(int s);
 
 void recvAnswer(int s, int max);

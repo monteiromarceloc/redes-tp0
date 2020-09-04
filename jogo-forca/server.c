@@ -50,17 +50,25 @@ int main(int argc, char **argv) {
         addrtostr(caddr, caddrstr, BUFSZ);
         printf("[log] connection from %s\n", caddrstr);
 // ------------------------------------------------------------------
-        
+        int found = 0;
         unsigned int tam = strlen(WORD);
-        send1(csock, tam);
-        unsigned char palpite = (char)recvByte(csock);
-        printf("palpite: %c\n", palpite);
-        int pos[tam];
-        int count = charFind(palpite, WORD, tam, pos);
-        printf("%d %d\n", count, pos[0]);
-        send3(csock, count, pos);
+        unsigned char palpite;
+        int pos[tam], count;
 
-        close(csock);
+        send1(csock, tam);
+        while(1){
+            palpite = (char)recvByte(csock);
+            printf("palpite: %c\n", palpite);
+            count = charFind(palpite, WORD, tam, pos);
+            printf("%d %d\n", count, pos[0]);
+            found += count;
+            if (found >= tam) {
+                send4(s);
+                close(csock);
+                break;
+            }
+            send3(csock, count, pos);
+        }
     }
     exit(EXIT_SUCCESS);
     return 0;

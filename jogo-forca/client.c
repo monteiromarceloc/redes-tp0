@@ -36,6 +36,10 @@ int main(int argc, char **argv) {
 
     int tamanho = (int)recvByte(s);
     printf("tamanho: %d\n", tamanho);
+
+    send2(s);
+    recvAnswer(s, tamanho+2);
+    getchar();
     send2(s);
     recvAnswer(s, tamanho+2);
 

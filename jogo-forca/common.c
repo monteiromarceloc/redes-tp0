@@ -21,7 +21,7 @@ void send1(int s, unsigned int tam) {
 }
 
 void send2(int s) {
-    printf("palpite> ");
+    printf("\npalpite> ");
     unsigned char msg[TAM]; 
     msg[0] = 2;
     msg[1] = getchar();
@@ -35,8 +35,15 @@ void send3(int s, int count, int* pos) {
     msg[1] = count;
     for(int i=2; i<2+count; i++)
         msg[i]=pos[i];
-    int count2 = send(s, msg, TAM, 0);
-    if(count2 != TAM) logexit("send");
+    int count2 = send(s, msg, 2+count, 0);
+    if(count2 != 2+count) logexit("send");
+}
+
+void send4(int s) {
+    unsigned char msg[1];
+    msg[0] = 4;
+    int count = send(s, msg, 1, 0);
+    if(count != 1) logexit("send");
 }
 
 unsigned char recvByte(int s){
@@ -51,7 +58,18 @@ unsigned char recvByte(int s){
 void recvAnswer(int s, int max){
     unsigned char buf[max]; 
     memset(buf, 0, max);
+
+    // int total = 0;
+    // int count;
+    // while(1){
+    //     count = recv(s, buf+total, 1, 0);
+    //     printf("count: %d\n", count);
+    //     if(count == 0) break;
+    //     total += count;
+    // }
     size_t count = recv(s, buf, max, 0);
+
+    if(buf[0] == 4) printf("Acabou");
     printf("count: %d tipo: %u ocorrencias: %u\n", (int)count, buf[0], buf[1]);
 }
 
