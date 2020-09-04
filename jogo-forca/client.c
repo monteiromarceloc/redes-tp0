@@ -19,11 +19,10 @@ int main(int argc, char **argv) {
 
     while(1){
         char palpite = (char)send2(s);
-        int done = recvAnswer(s, tam, word, palpite);
+        if(recvAnswer(s, tam, word, palpite) == 1) break;
         printf("%s\n", word);
-        if(done == 1) break;
     }
-    printf("Você conseguiu!\n");
+    printf("\nVocê conseguiu!\nA palavra é: %s\n", word);
     close(s);
     exit(EXIT_SUCCESS);
     return 0;

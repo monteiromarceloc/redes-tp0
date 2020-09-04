@@ -18,36 +18,36 @@ char _upper(char c){
 }
 
 void send1(int s, unsigned int tam) {
-    unsigned char msg[TAM]; 
-    msg[0] = 1;
-    msg[1] = (unsigned char)tam;
-    if(send(s, msg, TAM, 0) != TAM) logexit("send");
+    unsigned char buf[TAM]; 
+    buf[0] = 1;
+    buf[1] = (unsigned char)tam;
+    if(send(s, buf, TAM, 0) != TAM) logexit("send");
 }
 
 char send2(int s) {
     printf("\nPalpite> ");
-    unsigned char msg[TAM]; 
-    msg[0] = 2;
-    msg[1] = getchar();
+    unsigned char buf[TAM]; 
+    buf[0] = 2;
+    buf[1] = getchar();
     getchar(); // must be here due to the '\n'
-    if(send(s, msg, TAM, 0) != TAM) logexit("send");
-    return msg[1];
+    if(send(s, buf, TAM, 0) != TAM) logexit("send");
+    return buf[1];
 }
 
 void send3(int s, int count, int* pos) {
-    unsigned char msg[2+count]; 
-    msg[0] = 3;
-    msg[1] = count;
+    unsigned char buf[2+count]; 
+    buf[0] = 3;
+    buf[1] = count;
     for(int i=0; i<count; i++){
-        msg[2+i]=pos[i];
+        buf[2+i]=pos[i];
     }
-    if(send(s, msg, 2+count, 0) != 2+count) logexit("send");
+    if(send(s, buf, 2+count, 0) != 2+count) logexit("send");
 }
 
 void send4(int s) {
-    unsigned char msg[1]; 
-    msg[0] = 4;
-    if(send(s, msg, 1, 0) != 1) logexit("send");
+    unsigned char buf[1]; 
+    buf[0] = 4;
+    if(send(s, buf, 1, 0) != 1) logexit("send");
 }
 
 unsigned char recvByte(int s){
