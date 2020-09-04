@@ -1,8 +1,8 @@
 all:
 	gcc -Wall libs/common.c -c
 	gcc -Wall libs/socketHandler.c -c
-	gcc -Wall common.o socketHandler.o client.c -o client 
-	gcc -Wall common.o socketHandler.o server.c -o server
+	gcc -Wall common.o socketHandler.o cliente.c -o cliente 
+	gcc -Wall common.o socketHandler.o servidor.c -o servidor
 
 clean:
-	rm -f client server common.o socketHandler.o
+	rm -f cliente servidor common.o socketHandler.o

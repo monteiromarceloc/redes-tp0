@@ -18,13 +18,13 @@ void _logexit(const char *str) {
 }
 
 void _usage(char* name) {
-    printf("usage: %s <server IP> <server port>\n", name);
+    printf("usage: %s <ip-servidor> <porta-servidor>\n", name);
     printf("example: %s: 127.0.0.1 51511\n", name);
     exit(EXIT_FAILURE);
 }
 
 void _usage2(char *name) {
-    printf("usage: %s <server port>\n", name);
+    printf("usage: %s <porta>\n", name);
     printf("example: %s: 51511\n", name);
     exit(EXIT_FAILURE);
 }
