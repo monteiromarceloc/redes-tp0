@@ -1,6 +1,5 @@
 all:
-	gcc -Wall servidor.c -lpthread -o servidor_dns
-	gcc -Wall servidor.c -lpthread -o servidor
+	gcc -Wall servidor_dns.c -lpthread -o servidor_dns
 
 clean:
-	rm -f client server
+	rm -f servidor_dns
