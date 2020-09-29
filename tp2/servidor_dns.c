@@ -23,18 +23,17 @@ struct server
     int porta;
 };
 
+struct host hosts[MAXSIZE];
+struct server servers[MAXSIZE];
+int hcount, scount;
+
 void *response_handler(int port);
-void request_handler(int port);
+void request_handler(int port, char* hostname);
 
 int main(int argc, char *argv[]) { 
-	struct host hosts[MAXSIZE];
-	struct server servers[MAXSIZE];
-	int hcount=0, scount=0;
-
-	pthread_t thread_id;
-    char entrada[254];
-    
     int port = atoi(argv[1]);
+    char entrada[254];
+	pthread_t thread_id;
 
     // create thread for socket 
     if (pthread_create(&thread_id, NULL, response_handler, (void*) port) < 0) {
@@ -92,7 +91,9 @@ int main(int argc, char *argv[]) {
 				}
 				if(didfound==0){
 					printf("Tentando conectar-se com outros servidores...\n");
-					request_handler(8080);
+					for(int i=0; i<scount; i++){
+						request_handler(servers[i].porta, hostname);
+					}
 				}
 			}
 		}
@@ -101,13 +102,13 @@ int main(int argc, char *argv[]) {
 	return 0; 
 } 
 
-void request_handler(int port) {
+void request_handler(int port, char* hostname) {
 	int sockfd; 
 	char buffer[MAXLINE]; 
-	char *hello = "Hello from client"; 
+
 	struct sockaddr_in	 servaddr; 
 
-	// Creating socket file descriptor 
+	// Creating socket file descriptor
 	if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
 		perror("socket creation failed"); 
 		exit(EXIT_FAILURE); 
@@ -121,12 +122,12 @@ void request_handler(int port) {
 	servaddr.sin_addr.s_addr = INADDR_ANY; 
 	
 	int n;
-	socklen_t len; 
+	socklen_t len;
 	
-	sendto(sockfd, (const char *)hello, strlen(hello), 
+	sendto(sockfd, (const char *)hostname, strlen(hostname), 
 		MSG_CONFIRM, (const struct sockaddr *) &servaddr, 
 			sizeof(servaddr)); 
-	printf("Hello message sent.\n"); 
+	printf("Message sent.\n"); 
 		
 	n = recvfrom(sockfd, (char *)buffer, MAXLINE, 
 				MSG_WAITALL, (struct sockaddr *) &servaddr, 
@@ -136,16 +137,12 @@ void request_handler(int port) {
 
 	close(sockfd); 
 	return 0; 
-} 
+}
 
 
-/*
- * This will handle connection for each client
- * */
 void *response_handler(int port) {
     int sockfd; 
 	char buffer[MAXLINE]; 
-	char *hello = "Hello from server"; 
 	struct sockaddr_in servaddr, cliaddr; 
 	
 	// Creating socket file descriptor 
@@ -179,9 +176,27 @@ void *response_handler(int port) {
 				MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
 				&len); 
 	buffer[n] = '\0'; 
-	printf("Client : %s\n", buffer); 
-	sendto(sockfd, (const char *)hello, strlen(hello), 
-		MSG_CONFIRM, (const struct sockaddr *) &cliaddr, 
-			len); 
-	printf("Hello message sent.\n"); 
+	printf("Client: %s\n", buffer); 
+
+	int didfound = 0;
+	for(int i=0; i<hcount; i++){
+		// printf("searching... %lu %lu\n", strlen(hosts[i].name), strlen(buffer));
+		if(strcmp(hosts[i].name, buffer) == 0){
+			printf("IP found: %s\n", hosts[i].ip);
+			sendto(sockfd, (const char *)hosts[i].ip, strlen(hosts[i].ip), 
+				MSG_CONFIRM, (const struct sockaddr *) &cliaddr, 
+					len); 
+			didfound = 1;
+			break;
+		}
+	}
+	if(didfound==0){
+		unsigned char * res[2];
+		res[0]=2;
+		res[1]=-1;
+		sendto(sockfd, (const char *)res, strlen(res), 
+			MSG_CONFIRM, (const struct sockaddr *) &cliaddr, 
+				len);
+}
+	printf("Res message sent.\n"); 
 }
