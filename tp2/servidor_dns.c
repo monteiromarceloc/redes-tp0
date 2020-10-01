@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
 
 		while ((read = getline(&line, &len, fp)) != -1)
 		{
+			line[strcspn(line, "\n")] = '\0'; // Para remover o caracter \n
 			runCommand(line);
 		}
 
@@ -95,7 +96,6 @@ void runCommand(char *line)
 		}
 		else
 		{
-
 			strcpy(hosts[hcount].name, name);
 			strcpy(hosts[hcount].ip, ip);
 			hcount++;
@@ -145,11 +145,11 @@ void searchForIP(char *hostname)
 	}
 	if (didfound == 0)
 	{
-		printf("Tentando conectar-se com outros servidores...\n");
+		// printf("Tentando conectar-se com outros servidores...\n");
 		for (int i = 0; i < scount; i++)
 		{
 			const char *res = request_handler(servers[i].porta, hostname);
-			if (strcmp(res, "-1") != 0 && strcmp(res, "-1") != 1)
+			if (strstr(res, "-1") == NULL)
 			{
 				printf("IP: %s\n", res);
 				didRecv = 1;
@@ -158,7 +158,7 @@ void searchForIP(char *hostname)
 		}
 		if (didRecv == 0)
 		{
-			printf("Host not found\n");
+			printf("Host nao encontrado.\n");
 		}
 	}
 }
@@ -213,7 +213,7 @@ const char *request_handler(int port, char *hostname)
 void *response_handler(int port)
 {
 	int sockfd;
-	char buffer2[MAXLINE];
+	char buffer2[MAXLINE], buffer3[MAXLINE];
 	struct sockaddr_in servaddr, cliaddr;
 
 	// Creating socket file descriptor
@@ -227,7 +227,7 @@ void *response_handler(int port)
 	memset(&cliaddr, 0, sizeof(cliaddr));
 
 	// Filling server information
-	servaddr.sin_family = AF_INET; // IPv4
+	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = INADDR_ANY;
 	servaddr.sin_port = htons(port);
 
@@ -244,7 +244,7 @@ void *response_handler(int port)
 		int n;
 		socklen_t len;
 
-		len = sizeof(cliaddr); //len is value/resuslt
+		len = sizeof(cliaddr);
 
 		n = recvfrom(sockfd, (char *)buffer2, MAXLINE,
 								 MSG_WAITALL, (struct sockaddr *)&cliaddr,
@@ -252,12 +252,13 @@ void *response_handler(int port)
 		buffer2[n] = '\0';
 		printf("Client: %s\n", buffer2);
 
-		int didfound = 0;
+		int didfound = 0, didRecv = 0;
+		;
 		for (int i = 0; i < hcount; i++)
 		{
 			if (strcmp(hosts[i].name, buffer2) == 0)
 			{
-				printf("IP found: %s\n", hosts[i].ip);
+				// printf("IP found: %s\n", hosts[i].ip);
 				sendto(sockfd, (const char *)hosts[i].ip, strlen(hosts[i].ip),
 							 0, (const struct sockaddr *)&cliaddr,
 							 len);
@@ -267,12 +268,27 @@ void *response_handler(int port)
 		}
 		if (didfound == 0)
 		{
-			// TODO: search others
-
-			unsigned char res[2] = "-1";
-			sendto(sockfd, (const char *)res, strlen(res),
-						 0, (const struct sockaddr *)&cliaddr,
-						 len);
+			// printf("Buscando com outros servidores...\n");
+			for (int i = 0; i < scount; i++)
+			{
+				const char *res = request_handler(servers[i].porta, buffer2);
+				if (strstr(res, "-1") == NULL)
+				{
+					// printf("IP recv: %s\n", res);
+					sendto(sockfd, (const char *)res, strlen(res),
+								 0, (const struct sockaddr *)&cliaddr,
+								 len);
+					didRecv = 1;
+					break;
+				}
+			}
+			if (didRecv == 0)
+			{
+				const char res[2] = "-1";
+				sendto(sockfd, (const char *)res, strlen(res),
+							 0, (const struct sockaddr *)&cliaddr,
+							 len);
+			}
 		}
 	}
 }
