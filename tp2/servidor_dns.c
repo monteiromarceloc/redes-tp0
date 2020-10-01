@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
@@ -190,9 +191,20 @@ const char *request_handler(int port, char *hostname)
 				 0, (const struct sockaddr *)&servaddr,
 				 sizeof(servaddr));
 
-	n = recvfrom(sockfd, (char *)buffer, MAXLINE,
-							 MSG_WAITALL, (struct sockaddr *)&servaddr,
-							 &len);
+	struct timeval tv;
+	tv.tv_sec = 1;
+	tv.tv_usec = 1000;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
+	{
+		perror("Error");
+	}
+	n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
+
+	if (n < 0)
+	{ //timeout
+		printf("Timout reached\n");
+		return "-1";
+	}
 	close(sockfd);
 	buffer[n] = '\0';
 	return buffer;
