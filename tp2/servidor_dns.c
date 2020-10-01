@@ -31,10 +31,12 @@ int hcount, scount;
 void runCommand(char *line);
 void searchForIP(char *hostname);
 void *response_handler(int port);
-int request_handler(int port, char *hostname);
+const char *request_handler(int port, char *hostname);
 
 int main(int argc, char *argv[])
 {
+	hcount = 0;
+	scount = 0;
 	// Cria thread para receber conexões socket UDP
 	int port = atoi(argv[1]);
 	pthread_t thread_id;
@@ -58,8 +60,6 @@ int main(int argc, char *argv[])
 
 		while ((read = getline(&line, &len, fp)) != -1)
 		{
-			// printf("Retrieved line of length %zu:\n", read);
-			// printf("%s", line);
 			runCommand(line);
 		}
 
@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
 	while (1)
 	{
 		fgets(entrada, MAXLINE, stdin);
+		entrada[strcspn(entrada, "\n")] = '\0'; // Para remover o caracter \n
 		runCommand(entrada);
 	}
 
@@ -130,13 +131,13 @@ void runCommand(char *line)
 
 void searchForIP(char *hostname)
 {
-	int didfound = 0;
+	int didfound = 0, didRecv = 0;
 	hostname[strlen(hostname)] = '\0';
 	for (int i = 0; i < hcount; i++)
 	{
 		if (strcmp(hosts[i].name, hostname) == 0)
 		{
-			printf("My IP: %s\n", hosts[i].ip);
+			printf("IP: %s\n", hosts[i].ip);
 			didfound = 1;
 			break;
 		}
@@ -144,24 +145,24 @@ void searchForIP(char *hostname)
 	if (didfound == 0)
 	{
 		printf("Tentando conectar-se com outros servidores...\n");
-		int res = 0;
 		for (int i = 0; i < scount; i++)
 		{
-			res = request_handler(servers[i].porta, hostname);
-			if (res != 0)
+			const char *res = request_handler(servers[i].porta, hostname);
+			if (strcmp(res, "-1") != 0 && strcmp(res, "-1") != 1)
 			{
-				printf("Found IP\n");
+				printf("IP: %s\n", res);
+				didRecv = 1;
 				break;
 			}
 		}
-		if (res == 0)
+		if (didRecv == 0)
 		{
-			printf("Not found\n");
+			printf("Host not found\n");
 		}
 	}
 }
 
-int request_handler(int port, char *hostname)
+const char *request_handler(int port, char *hostname)
 {
 	int sockfd;
 	char buffer[MAXLINE];
@@ -188,20 +189,13 @@ int request_handler(int port, char *hostname)
 	sendto(sockfd, (const char *)hostname, strlen(hostname),
 				 0, (const struct sockaddr *)&servaddr,
 				 sizeof(servaddr));
-	printf("Message sent.\n");
 
 	n = recvfrom(sockfd, (char *)buffer, MAXLINE,
 							 MSG_WAITALL, (struct sockaddr *)&servaddr,
 							 &len);
-	buffer[n] = '\0';
 	close(sockfd);
-
-	if (strcmp(buffer, "-1") != 0 && strcmp(buffer, "-1") != 1)
-	{
-		printf("Recv IP: %s\n", buffer);
-		return 1;
-	}
-	return 0;
+	buffer[n] = '\0';
+	return buffer;
 }
 
 void *response_handler(int port)
@@ -268,6 +262,5 @@ void *response_handler(int port)
 						 0, (const struct sockaddr *)&cliaddr,
 						 len);
 		}
-		printf("Res message sent.\n");
 	}
 }
