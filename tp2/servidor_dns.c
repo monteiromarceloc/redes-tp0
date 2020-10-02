@@ -9,9 +9,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define MAXSIZE 100
+#define DATASIZE 100
 #define STRSIZE 50
-#define MAXLINE 200
+#define BUFSIZE 200
 
 struct host
 {
@@ -25,8 +25,8 @@ struct server
 	int porta;
 };
 
-struct host hosts[MAXSIZE];
-struct server servers[MAXSIZE];
+struct host hosts[DATASIZE];
+struct server servers[DATASIZE];
 int hcount, scount;
 
 void runCommand(char *line);
@@ -71,10 +71,10 @@ int main(int argc, char *argv[])
 	}
 
 	// Recebe comandos do teclado
-	char entrada[MAXLINE];
+	char entrada[BUFSIZE];
 	while (1)
 	{
-		fgets(entrada, MAXLINE, stdin);
+		fgets(entrada, BUFSIZE, stdin);
 		entrada[strcspn(entrada, "\n")] = '\0'; // Para remover o caracter \n
 		runCommand(entrada);
 	}
@@ -166,7 +166,7 @@ void searchForIP(char *hostname)
 const char *request_handler(int port, char *hostname)
 {
 	int sockfd;
-	char buffer[MAXLINE];
+	char buffer[BUFSIZE];
 
 	struct sockaddr_in servaddr;
 
@@ -198,7 +198,7 @@ const char *request_handler(int port, char *hostname)
 	{
 		perror("Error");
 	}
-	n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
+	n = recvfrom(sockfd, (char *)buffer, BUFSIZE, MSG_WAITALL, (struct sockaddr *)&servaddr, &len);
 
 	if (n < 0)
 	{ //timeout
@@ -213,7 +213,7 @@ const char *request_handler(int port, char *hostname)
 void *response_handler(int port)
 {
 	int sockfd;
-	char buffer2[MAXLINE], buffer3[MAXLINE];
+	char buffer2[BUFSIZE], buffer3[BUFSIZE];
 	struct sockaddr_in servaddr, cliaddr;
 
 	// Creating socket file descriptor
@@ -246,11 +246,10 @@ void *response_handler(int port)
 
 		len = sizeof(cliaddr);
 
-		n = recvfrom(sockfd, (char *)buffer2, MAXLINE,
+		n = recvfrom(sockfd, (char *)buffer2, BUFSIZE,
 								 MSG_WAITALL, (struct sockaddr *)&cliaddr,
 								 &len);
 		buffer2[n] = '\0';
-		printf("Client: %s\n", buffer2);
 
 		int didfound = 0, didRecv = 0;
 		;
